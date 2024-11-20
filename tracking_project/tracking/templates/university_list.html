@@ -10,7 +10,11 @@
 
     <ul>
         {% for university in universities %}
-            <li>{{ university.name }} - <a href="mailto:{{ university.email }}">{{ university.email }}</a></li>
+            <li>
+                {{ university.name }} - <a href="mailto:{{ university.email }}">{{ university.email }}</a>
+                <!-- Add link to tracking script page -->
+                <a href="{% url 'generate_tracking_script' university.id %}">View Tracking Script</a>
+            </li>
         {% empty %}
             <li>No universities available.</li>
         {% endfor %}

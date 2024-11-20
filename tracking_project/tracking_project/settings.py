@@ -30,14 +30,20 @@ SECRET_KEY = 'django-insecure-gb#hyoz2m3sgh(l94kk+_$f^fi@r3k17$)rkhlnd1uy0mr8e5k
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    'https://apply-pal-project.vercel.app/'
+    'https://apply-pal-project.vercel.app/',
+    '127.0.0.1'
 ]
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+CORS_ALLOWED_ORIGINS = [
+    "https://tracking-test-mu.vercel.app",
+    "http://127.0.0.1:8000",  # If you're testing locally
+]
 
 # Application definition
 
 INSTALLED_APPS = [
     'tracking',
+    'corsheaders',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -47,8 +53,8 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -111,6 +117,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+CORS_ALLOW_ALL_ORIGINS = True
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/

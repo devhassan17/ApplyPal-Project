@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tracking Script</title>
+    <style>
+        .script-container {
+            margin: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .copy-button {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 10px 15px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="script-container">
+        <h1>Generated Tracking Script</h1>
+        <textarea id="scriptCode" rows="15" style="width: 100%; font-family: monospace;" readonly>{{ script_code }}</textarea>
+        <button class="copy-button" onclick="copyToClipboard()">Copy Script</button>
+    </div>
+
+    <script>
+        function copyToClipboard() {
+            const scriptCode = document.getElementById('scriptCode');
+            scriptCode.select();
+            document.execCommand('copy');
+            alert('Script copied to clipboard!');
+        }
+    </script>
+</body>
+</html>

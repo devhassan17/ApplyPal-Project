@@ -9,43 +9,7 @@
     </div>
     <form method="POST">
         {% csrf_token %}
-        
-        <!-- Username Field -->
-        <div class="input-group">
-            <input type="text" name="username" placeholder="Username" required>
-        </div>
-
-        <!-- Password Field -->
-        <div class="input-group">
-            <input type="password" name="password1" placeholder="Password" required>
-        </div>
-
-        <!-- Confirm Password Field -->
-        <div class="input-group">
-            <input type="password" name="password2" placeholder="Confirm Password" required>
-        </div>
-
-        <!-- Institution Name Field -->
-        <div class="input-group">
-            <input type="text" name="institution_name" placeholder="Institution Name" required>
-        </div>
-
-        <!-- First Name Field -->
-        <div class="input-group">
-            <input type="text" name="first_name" placeholder="First Name" required>
-        </div>
-
-        <!-- Last Name Field -->
-        <div class="input-group">
-            <input type="text" name="last_name" placeholder="Last Name" required>
-        </div>
-
-        <!-- Address Field -->
-        <div class="input-group">
-            <input type="text" name="address" placeholder="Address" required>
-        </div>
-
-        <!-- Submit Button -->
+        {{ form.as_p }}
         <button type="submit" class="btn">Sign Up</button>
     </form>
     

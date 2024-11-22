@@ -4,30 +4,57 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>University List</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/university_list.css' %}">
 </head>
 <body>
-    <h1>List of Universities</h1>
+    <header class="header">
+        <div class="container">
+            <h1 class="title">This Page is for ApplyPal Super Admin</h1>
+            <p class="subtitle">Manage and track universities in the system.</p>
+        </div>
+    </header>
 
-    <ul>
-        {% for university in universities %}
-            <li>
-                {{ university.name }} - <a href="mailto:{{ university.email }}">{{ university.email }}</a>
-                <!-- Add link to tracking script page -->
-                <a href="{% url 'generate_tracking_script' university.id %}">View Tracking Script</a>
-            </li>
-        {% empty %}
-            <li>No universities available.</li>
-        {% endfor %}
-    </ul>
+    <main class="main-content container">
+        <section class="universities-section">
+            <h2 class="section-title">List of Universities</h2>
+            <ul class="university-list">
+                {% for university in universities %}
+                    <li class="university-item">
+                        <span class="university-name">{{ university.first_name }}</span> - 
+                        <a href="mailto:{{ university.email }}" class="university-email">{{ university.email }}</a>
+                        <a href="{% url 'generate_tracking_script' university.id %}" class="btn btn-primary">View Tracking Script</a>
+                    </li>
+                {% empty %}
+                    <li class="university-item empty">No universities available.</li>
+                {% endfor %}
+            </ul>
+        </section>
 
-    <a href="{% url 'homepage' %}">Back to Homepage</a>
+        <section class="navigation-section">
+            <h2 class="section-title">Navigation Links</h2>
+            <ul class="nav-links">
+                <li><a href="{% url 'tracking' %}" class="btn btn-secondary">Tracking Page</a></li>
+                <li><a href="{% url 'university_detail' %}" class="btn btn-secondary">Profile Page</a></li>
+                <li><a href="{% url 'university_edit' %}" class="btn btn-secondary">Edit Profile</a></li>
+            </ul>
+        </section>
 
-    <!-- Show logout link only if user is logged in -->
-    {% if user.is_authenticated %}
-    <form action="{% url 'logout' %}" method="POST">
-        {% csrf_token %}
-        <button type="submit">Logout</button>
-    </form>
-    {% endif %}
+        <div class="action-links">
+            <a href="{% url 'homepage' %}" class="btn btn-primary">Back to Homepage</a>
+            {% if user.is_authenticated %}
+                <form action="{% url 'logout' %}" method="POST" class="logout-form">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Logout</button>
+                </form>
+            {% endif %}
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 University Tracking System. All rights reserved.</p>
+        </div>
+    </footer>
 </body>
 </html>

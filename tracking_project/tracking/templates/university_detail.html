@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="profile-container">
+    <h2 class="profile-title">Your Profile</h2>
+    <div class="profile-card">
+        <p><strong>Institution Name:</strong> {{ object.institution_name }}</p>
+        <p><strong>First Name:</strong> {{ object.first_name }}</p>
+        <p><strong>Last Name:</strong> {{ object.last_name }}</p>
+        <p><strong>Email:</strong> 
+            <a href="mailto:{{ object.email }}" class="profile-link">{{ object.email }}</a>
+        </p>
+        <p><strong>Calendly Link:</strong> 
+            <a href="{{ object.calendly_link }}" target="_blank" class="profile-link">{{ object.calendly_link }}</a>
+        </p>
+        <p><strong>Address:</strong> {{ object.address }}</p>
+    </div>
+    <div class="profile-actions">
+        <a href="{% url 'university_edit' %}" class="btn btn-primary">Edit Profile</a>
+    </div>
+</div>
+{% endblock %}

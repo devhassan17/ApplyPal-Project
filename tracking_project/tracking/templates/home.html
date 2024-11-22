@@ -4,21 +4,58 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Homepage</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/home.css' %}">
 </head>
 <body>
-    <h1>Welcome to the University Tracking System</h1>
+    <header class="header">
+        <div class="container">
+            <h1 class="title">Welcome to the University Tracking System</h1>
+            <p class="subtitle">Monitor, track, and manage university interactions seamlessly.</p>
+        </div>
+    </header>
 
-    {% if user.is_authenticated %}
-        <!-- Logout form -->
-        <form action="{% url 'logout' %}" method="POST">
-            {% csrf_token %}
-            <button type="submit">Logout</button>
-        </form>
-    {% else %}
-        <a href="{% url 'login' %}">Login</a> | 
-        <a href="{% url 'signup' %}">Signup</a>
-    {% endif %}
+    <nav class="navbar">
+        <div class="container">
+            <ul class="nav-links">
+                {% if user.is_authenticated %}
+                    <li>
+                        <form action="{% url 'logout' %}" method="POST" class="logout-form">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-primary">Logout</button>
+                        </form>
+                    </li>
+                {% else %}
+                    <li><a href="{% url 'login' %}" class="btn btn-secondary">Login</a></li>
+                    <li><a href="{% url 'signup' %}" class="btn btn-secondary">Signup</a></li>
+                {% endif %}
+                <li><a href="{% url 'university_list' %}" class="btn btn-primary">View Universities</a></li>
+            </ul>
+        </div>
+    </nav>
 
-    <a href="{% url 'university_list' %}">View Universities</a>
+    <section class="content">
+        <div class="container">
+            <h2>About This Tool</h2>
+            <p>
+                The <strong>University Tracking System</strong> is designed to help administrators 
+                and staff monitor and analyze interactions across different institutions. 
+                It provides real-time insights into IP-based tracking, user activity, 
+                and country-based interactions.
+            </p>
+            <ul class="features">
+                <li>Secure login and user management system.</li>
+                <li>Real-time tracking and logging of user activity.</li>
+                <li>Comprehensive analytics for administrators.</li>
+                <li>Interactive and user-friendly interface.</li>
+            </ul>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 University Tracking System. All rights reserved.</p>
+        </div>
+    </footer>
 </body>
 </html>

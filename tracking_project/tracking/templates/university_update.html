@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="edit-profile-container">
+    <h2 class="edit-profile-title">Edit Your Profile</h2>
+    <form method="post" class="edit-profile-form">
+        {% csrf_token %}
+        <div class="form-fields">
+            {{ form.as_p }}
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn btn-success">Save Changes</button>
+            <a href="{% url 'university_detail' %}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

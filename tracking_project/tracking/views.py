@@ -2,13 +2,22 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
 from django.contrib import messages
-from .models import UserProfile
+# from .models import UserProfile
+from django.views.generic import DetailView, UpdateView
+from django.contrib.auth.mixins import LoginRequiredMixin
+import pycountry
+from django.urls import reverse_lazy
+from django.shortcuts import get_object_or_404
+from django.http import HttpResponseForbidden
+from .models import University
 from django.http import JsonResponse
-from .forms import UserProfileForm
+from .forms import UniversitySignUpForm
 from django.views.decorators.csrf import csrf_exempt
 from ipware import get_client_ip
 import geoip2.database
 import logging
+from django.utils.timezone import now
+from .models import Tracking
 import json
 
 from rest_framework.views import APIView
@@ -29,22 +38,31 @@ def university_list(request):
 # Signup View
 def signup(request):
     if request.method == 'POST':
-        user_form = UserCreationForm(request.POST)
-        profile_form = UserProfileForm(request.POST)
+        form = UniversitySignUpForm(request.POST)
+        if form.is_valid():
+            # Create the User instance
+            user = form.save(commit=False)
+            user.email = form.cleaned_data['email']
+            user.save()
 
-        if user_form.is_valid() and profile_form.is_valid():
-            user = user_form.save()
-            profile = profile_form.save(commit=False)
-            profile.user = user
-            profile.save()
-            return redirect('login')  # Redirect to the login page after successful registration
+            # Create the associated University instance
+            University.objects.create(
+                user=user,
+                name=user.username,  # Optional: Use username as the default name
+                email=user.email,  # Ensure email is correctly set
+                institution_name=form.cleaned_data['institution_name'],
+                first_name=form.cleaned_data['first_name'],
+                last_name=form.cleaned_data['last_name'],
+                address=form.cleaned_data['address'],
+            )
+
+            return redirect('login')  # Redirect to login page after successful registration
     else:
-        user_form = UserCreationForm()
-        profile_form = UserProfileForm()
+        form = UniversitySignUpForm()
 
-    return render(request, 'signup.html', {'user_form': user_form, 'profile_form': profile_form})
-# Generate tracking script for a university
-from django.shortcuts import get_object_or_404, render
+    return render(request, 'signup.html', {'form': form})
+
+
 
 def generate_tracking_script(request, university_id):
     # Retrieve the university object based on the provided ID
@@ -54,7 +72,7 @@ def generate_tracking_script(request, university_id):
     track_click_url = request.build_absolute_uri('/track-click/')
     
     # Define the Calendly URL (can be dynamic if needed)
-    calendly_url = "https://calendly.com/example"
+    calendly_url = university.calendly_link or "https://calendly.com/default"  
     
     # Insert the script into a template-friendly string format
     script_code = f"""
@@ -64,7 +82,7 @@ def generate_tracking_script(request, university_id):
         const trackClickUrl = '{track_click_url}';
 
         const logToConsole = (message) => console.log(message);
-
+    
         const sendTrackingData = (type) => {{
             const data = {{ type, universityId }};
             logToConsole(`Sending request data: ${{JSON.stringify(data)}}`);
@@ -82,19 +100,20 @@ def generate_tracking_script(request, university_id):
         // Create the Chat to our Students button
         const button = document.createElement('button');
         button.innerText = 'Chat to our Students';
-        button.style.cssText = `
-            position: fixed;
-            top: 50%;
-            right: 0;
-            transform: translateY(-50%);
-            padding: 10px 20px;
-            background: #007BFF;
-            color: white;
-            border: none;
-            border-radius: 0 5px 5px 0;
-            cursor: pointer;
-            z-index: 1000;
-        `;
+    chatButton.style.cssText = `
+                    position: fixed;
+                    top: 50%;
+                    right: 18px; 
+                    transform: translateY(-50%) rotate(-90deg);
+                    transform-origin: right center;
+                    padding: 10px 20px;
+                    background: #007BFF;
+                    color: white;
+                    border: none;
+                    border-radius: 0 5px 5px 0;
+                    cursor: pointer;
+                    z-index: 1000;
+                `;
 
         // Panel container
         const panel = document.createElement('div');
@@ -158,37 +177,70 @@ def generate_tracking_script(request, university_id):
     # Render the script in a template
     return render(request, 'tracking_script.html', {'script_code': script_code})
 
+def get_country_name(country_code):
+    """
+    Converts ISO country code to full country name.
+    """
+    try:
+        country = pycountry.countries.get(alpha_2=country_code)
+        return country.name if country else "Unknown"
+    except Exception as e:
+        return "Unknown"
+
 
 # Track click events
 @csrf_exempt
 def track_click(request):
     if request.method == 'POST':
         try:
+            # Parse incoming data
             data = json.loads(request.body)
             university_id = data.get('universityId')
-            interaction_type = data.get('type')
+            interaction_type = data.get('type', 'no')
+
+            # Get IP and Country
+            ip = data.get('ip')
+            country_code = data.get('country')
             
-            ip, _ = get_client_ip(request)
-            country = "Unknown"
-            if ip:
-                try:
-                    reader = geoip2.database.Reader('./GeoLite2-City.mmdb')
-                    response = reader.city(ip)
-                    country = response.country.name
-                except Exception as e:
-                    logger.error(f"GeoIP error: {e}")
+            country_name = get_country_name(country_code)
             
-            message = f"Button clicked - University ID: {university_id}, Interaction Type: {interaction_type}, IP: {ip}, Country: {country}"
+            # Fetch University
+            university = get_object_or_404(University, id=university_id)
+
+            # Save to Tracking model
+            tracking_record = Tracking.objects.create(
+                university=university,
+                interaction_type=interaction_type,
+                ip_address=ip if ip else "127.0.0.1",
+                country=country_name,
+                time=now()
+            )
+
+            # Prepare message with timestamp
+            message = (
+                f"Button clicked - University ID: {university_id}, Interaction Type: {interaction_type}, "
+                f"IP: {ip}, Country: {country_name}, Time: {tracking_record.time}"
+            )
             print(message)
             logger.info(message)
-            return JsonResponse({"status": "success", "message": f"{interaction_type} button clicked."})
-            
+
+            return JsonResponse({
+                "status": "success",
+                "message": "Data tracked successfully.",
+                "data": {
+                    "university_id": university_id,
+                    "interaction_type": interaction_type,
+                    "ip_address": ip,
+                    "country": country_name,
+                    "time": tracking_record.time
+                }
+            })
+
         except Exception as e:
             logger.error(f"Error processing click: {e}")
             return JsonResponse({"status": "error", "message": str(e)}, status=400)
-    
-    return JsonResponse({"error": "Invalid method"}, status=400)
 
+    return JsonResponse({"error": "Invalid method"}, status=400)
 # Calendly webhook to track appointments
 class CalendlyWebhook(APIView):
     def post(self, request):
@@ -214,3 +266,67 @@ class CalendlyWebhook(APIView):
         except Exception as e:
             logger.error(f"Unexpected error in Calendly webhook: {e}")
             return JsonResponse({"error": "An unexpected error occurred"}, status=500)
+        
+def tracking_view(request):
+    if request.user.is_staff:  # Admins can see all tracking records
+        tracking_records = Tracking.objects.all()
+    else:  # Regular users see only their university's tracking records
+        tracking_records = Tracking.objects.filter(university__user=request.user)
+
+    return render(request, 'tracking.html', {'tracking_records': tracking_records})
+# def store_tracking_data(request):
+#     if request.method == "POST":
+#         try:
+#             # Debugging input data
+#             print(f"Request Data: {request.POST}")
+#             data = request.POST
+#             university_id = data.get("university_id")
+#             interaction_type = data.get("interaction_type", "no")
+#             ip_address = request.META.get('REMOTE_ADDR', "127.0.0.1")
+#             country = data.get("country", "Unknown")
+            
+#             # Ensure the University exists
+#             university = get_object_or_404(University, id=university_id)
+            
+#             # Save to Tracking Model
+#             tracking_record = Tracking.objects.create(
+#                 university=university,
+#                 interaction_type=interaction_type,
+#                 ip_address=ip_address,
+#                 country=country
+#             )
+#             print(f"Tracking Record Saved: {tracking_record}")
+            
+#             return JsonResponse({"status": "success", "message": "Data saved successfully."}, status=201)
+#         except Exception as e:
+#             print(f"Error occurred: {e}")
+#             return JsonResponse({"status": "error", "message": str(e)}, status=400)
+#     else:
+#         return JsonResponse({"status": "error", "message": "Invalid request method."}, status=405)
+class UniversityDetailView(LoginRequiredMixin, DetailView):
+    model = University
+    template_name = 'university_detail.html'
+
+    def get_object(self):
+        # Fetch the University object based on the logged-in user
+        try:
+            # Assuming the `University` table has a `user` field that links it to the logged-in user
+            return University.objects.get(user=self.request.user)
+        except University.DoesNotExist:
+            # Redirect the user to the edit page if no record exists
+            return redirect('university_edit')    
+class UniversityUpdateView(LoginRequiredMixin, UpdateView):
+    model = University
+    fields = ['name', 'email', 'calendly_link', 'institution_name', 'first_name', 'last_name', 'address']
+    template_name = 'university_update.html'
+    success_url = reverse_lazy('university_detail')  # Replace with your URL name for the detail page
+
+    def get_object(self):
+        # Ensure the user can only edit their own information
+        return get_object_or_404(University, user=self.request.user)
+
+    def form_valid(self, form):
+        # Add any additional processing here if needed
+        if self.request.user != form.instance.user:
+            return HttpResponseForbidden("You are not allowed to edit this profile.")
+        return super().form_valid(form)

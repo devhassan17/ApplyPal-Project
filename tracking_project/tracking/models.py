@@ -1,29 +1,24 @@
-
-
+from django.utils.timezone import now
 from django.db import models
+import uuid
 from django.contrib.auth.models import User
 
 # University Model
 class University(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     name = models.CharField(max_length=255)
-    email = models.EmailField(unique=True)
+    email = models.EmailField(unique=True)  # For university admin
     password_hash = models.CharField(max_length=255)  # Store hashed password
-    calendly_link = models.URLField()
+    calendly_link = models.URLField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    institution_name = models.CharField(max_length=255, null=True, blank=True)
+    first_name = models.CharField(max_length=255, null=True, blank=True)
+    last_name = models.CharField(max_length=255, null=True, blank=True)
+    address = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return self.name
-
-
-# User Model (Admin for University)
-class UniversityAdmin(models.Model):
-    university = models.ForeignKey(University, related_name="admins", on_delete=models.CASCADE)
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return f"Admin: {self.user.username} for {self.university.name}"
-
-
+    
 # Iframe Generation Model
 class Iframe(models.Model):
     university = models.ForeignKey(University, on_delete=models.CASCADE)
@@ -67,12 +62,24 @@ class Analytics(models.Model):
     def __str__(self):
         return f"Analytics for {self.university.name}"
 
-class UserProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
-    institution_name = models.CharField(max_length=255)
-    first_name = models.CharField(max_length=255)
-    last_name = models.CharField(max_length=255)
-    address = models.TextField()
+
+# InteractionType Choices
+class InteractionType(models.TextChoices):
+    YES = 'yes', 'Yes'
+    NO = 'no', 'No'
+
+
+# Tracking Model
+class Tracking(models.Model):
+    university = models.ForeignKey(University, on_delete=models.CASCADE, related_name="tracking_records")
+    interaction_type = models.CharField(
+        max_length=10,
+        choices=InteractionType.choices,
+        default=InteractionType.NO,
+    )
+    ip_address = models.GenericIPAddressField()
+    country = models.CharField(max_length=255, default="Unknown")
+    time = models.DateTimeField(default=now)
 
     def __str__(self):
-        return f"Profile of {self.user.username}"
+        return f"Tracking Record - University ID: {self.university.id}, Interaction: {self.interaction_type}"

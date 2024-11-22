@@ -1,0 +1,150 @@
+/* General Styling */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f8f9fa;
+    margin: 0;
+    padding: 0;
+    color: #333;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 15px;
+}
+
+/* Header Section */
+.header {
+    background: linear-gradient(90deg, #007bff, #0056b3);
+    color: #fff;
+    padding: 2rem 0;
+    text-align: center;
+}
+
+.header .title {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.header .subtitle {
+    font-size: 1.25rem;
+}
+
+/* Main Content */
+.main-content {
+    padding: 2rem 0;
+}
+
+/* University List */
+.universities-section {
+    margin-bottom: 2rem;
+}
+
+.university-list {
+    list-style: none;
+    padding: 0;
+}
+
+.university-item {
+    background: #fff;
+    border: 1px solid #ddd;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.university-item.empty {
+    text-align: center;
+    font-style: italic;
+    color: #888;
+}
+
+.university-name {
+    font-weight: bold;
+    color: #333;
+}
+
+.university-email {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.university-email:hover {
+    text-decoration: underline;
+}
+
+/* Navigation Links */
+.navigation-section .nav-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.navigation-section .nav-links li {
+    margin: 0 10px 10px 0;
+}
+
+.action-links {
+    margin-top: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.action-links .btn {
+    margin-right: 10px;
+}
+
+/* Buttons */
+.btn {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    text-align: center;
+    text-decoration: none;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    color: #fff;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    color: #fff;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    color: #fff;
+}
+
+.btn-danger:hover {
+    background-color: #c82333;
+}
+
+/* Footer */
+.footer {
+    background: #343a40;
+    color: #fff;
+    text-align: center;
+    padding: 1rem 0;
+}

@@ -8,9 +8,10 @@ class UniversitySignUpForm(UserCreationForm):
     institution_name = forms.CharField(required=True)
     first_name = forms.CharField(required=True)
     last_name = forms.CharField(required=True)
+    calendly_link = forms.URLField(required=True, label="Calendly Link")
     address = forms.CharField(widget=forms.Textarea, required=True)
 
     class Meta:
         model = User  # Use the User model for username and password
-        fields = ['username', 'email' ,'password1', 'password2', 'institution_name', 'first_name', 'last_name', 'address']
+        fields = ['username', 'email' ,'password1', 'password2', 'institution_name', 'first_name', 'last_name','calendly_link', 'address']
     

@@ -28,12 +28,24 @@ logger = logging.getLogger(__name__)
 
 # Homepage view
 def homepage(request):
-    return render(request, 'home.html')
+    # Ensure the user is authenticated
+    if request.user.is_authenticated:
+        # Filter universities related to the logged-in user
+        universities = University.objects.filter(user=request.user)
+    else:
+        # If the user is not authenticated, no universities are shown
+        universities = None
+
+    return render(request, 'home.html', {'universities': universities})
 
 # View for listing universities
 def university_list(request):
+    # Check if the user is an admin (staff)
+    if not request.user.is_staff:
+        return HttpResponseForbidden("You do not have permission to view this page.")
+
     universities = University.objects.all()
-    return render(request, 'university_list.html', {'universities': universities})
+    return render(request, 'universities.html', {'universities': universities})
 
 # Signup View
 def signup(request):
@@ -53,6 +65,7 @@ def signup(request):
                 institution_name=form.cleaned_data['institution_name'],
                 first_name=form.cleaned_data['first_name'],
                 last_name=form.cleaned_data['last_name'],
+                calendly_link=form.cleaned_data['calendly_link'], 
                 address=form.cleaned_data['address'],
             )
 
@@ -71,43 +84,55 @@ def generate_tracking_script(request, university_id):
     # Get the absolute URL for the tracking endpoint
     track_click_url = request.build_absolute_uri('/track-click/')
     
-    # Define the Calendly URL (can be dynamic if needed)
-    calendly_url = university.calendly_link or "https://calendly.com/default"  
-    
+    # Get the Calendly URL (can be dynamic if needed)
+    calendly_url = university.calendly_link or "https://calendly.com/example"
+
     # Insert the script into a template-friendly string format
     script_code = f"""
 <script>
     document.addEventListener('DOMContentLoaded', function () {{
-        const universityId = '{university_id}';
-        const trackClickUrl = '{track_click_url}';
-
-        const logToConsole = (message) => console.log(message);
-    
-        const sendTrackingData = (type) => {{
-            const data = {{ type, universityId }};
-            logToConsole(`Sending request data: ${{JSON.stringify(data)}}`);
-
-            fetch(trackClickUrl, {{
-                method: 'POST',
-                headers: {{ 'Content-Type': 'application/json' }},
-                body: JSON.stringify(data),
-            }})
+        // Fetch IP info from ipinfo.io
+        fetch('https://ipinfo.io/json?token=4b143e6e51301d')
             .then(response => response.json())
-            .then(result => logToConsole(`Response: ${{JSON.stringify(result)}}`))
-            .catch(error => logToConsole(`Error sending data: ${{error}}`));
-        }};
+            .then(data => {{
+                console.log('IP Info:', data);
+    
+                const ip = data.ip;
+                const country = data.country;
 
-        // Create the Chat to our Students button
-        const button = document.createElement('button');
-        button.innerText = 'Chat to our Students';
-    chatButton.style.cssText = `
+                // Tracking variables
+                const universityId = '{university_id}';
+                const trackClickUrl = '{track_click_url}';
+
+                // Utility function to log messages to the console
+                const logToConsole = (message) => console.log(message);
+
+                // Function to send tracking data
+                const sendTrackingData = (type) => {{
+                    const trackingData = {{ type, universityId, ip, country }}; // Include IP and country
+                    logToConsole(`Sending tracking data: ${{JSON.stringify(trackingData)}}`);
+
+                    fetch(trackClickUrl, {{
+                        method: 'POST',
+                        headers: {{ 'Content-Type': 'application/json' }},
+                        body: JSON.stringify(trackingData),
+                    }})
+                        .then(response => response.json())
+                        .then(result => logToConsole(`Response: ${{JSON.stringify(result)}}`))
+                        .catch(error => logToConsole(`Error sending tracking data: ${{error}}`));
+                }};
+
+                // Create the "Chat to our Students" button
+                const chatButton = document.createElement('button');
+                chatButton.innerText = 'Chat to our Students';
+                chatButton.style.cssText = `
                     position: fixed;
                     top: 50%;
                     right: 18px; 
                     transform: translateY(-50%) rotate(-90deg);
                     transform-origin: right center;
                     padding: 10px 20px;
-                    background: #007BFF;
+                    background: #131e42;
                     color: white;
                     border: none;
                     border-radius: 0 5px 5px 0;
@@ -115,61 +140,67 @@ def generate_tracking_script(request, university_id):
                     z-index: 1000;
                 `;
 
-        // Panel container
-        const panel = document.createElement('div');
-        panel.style.cssText = `
-            position: fixed;
-            top: 50%;
-            right: -310px;
-            transform: translateY(-50%);
-            width: 300px;
-            background: white;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            padding: 20px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            transition: right 0.3s ease;
-            z-index: 1001;
-            display: none;
-        `;
-        panel.innerHTML = `
-            <p>Would you like to book an appointment with one of our current students or alumni?</p>
-            <button id="yesButton" style="margin-right: 10px; padding: 5px 10px; background: #007BFF; color: white; border: none; border-radius: 3px; cursor: pointer;">Yes</button>
-            <button id="noButton" style="padding: 5px 10px; background: #FF0000; color: white; border: none; border-radius: 3px; cursor: pointer;">No</button>
-        `;
 
-        // Append panel to body
-        document.body.appendChild(panel);
+                // Create the sliding panel
+                const panel = document.createElement('div');
+                panel.style.cssText = `
+                    position: fixed;
+                    top: 60%;
+                    right: -310px;
+                    transform: translateY(-50%);
+                    width: 300px;
+                    background: white;
+                    border: 1px solid #ccc;
+                    border-radius: 5px;
+                    padding: 20px;
+                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                    transition: right 0.3s ease;
+                    z-index: 1001;
+                    display: none;
+                `;
+                panel.innerHTML = `
+                    <p>Would you like to book an appointment with one of our current students or alumni?</p>
+                    <button id="yesButton" style="margin-right: 10px; padding: 5px 10px;  color: black; border: none; border-radius: 3px; cursor: pointer;">Yes</button>
+                    <button id="noButton" style="padding: 5px 10px;  color: black; border: none; border-radius: 3px; cursor: pointer;">No</button>
+                    <div style="text-align: center; margin-top: 20px; font-size: 12px;">
+                    <a href="https://www.applypal.io/" target="_blank" style="text-decoration: none; color: #131e42;">Powered by TAG</a>
+                </div>
+                `;
 
-        // Slide-in animation for panel
-        const togglePanel = (show) => {{
-            panel.style.right = show ? '0' : '-310px';
-        }};
+                // Append panel to body
+                document.body.appendChild(panel);
 
-        // Button click to show panel
-        button.onclick = () => {{
-            panel.style.display = 'block';
-            togglePanel(true);
-            sendTrackingData('chat');
-        }};
+                // Function to toggle the panel
+                const togglePanel = (show) => {{
+                    panel.style.right = show ? '0' : '-310px';
+                }};
 
-        // Yes button functionality
-        panel.querySelector('#yesButton').onclick = () => {{
-            window.open('{calendly_url}', '_blank');
-            sendTrackingData('calendly');
-        }};
+                // Button click to show the panel
+                chatButton.onclick = () => {{
+                    panel.style.display = 'block';
+                    togglePanel(true);
+                    sendTrackingData('chat');
+                }};
 
-        // No button functionality
-        panel.querySelector('#noButton').onclick = () => {{
-            togglePanel(false);
-            setTimeout(() => {{
-                panel.style.display = 'none';
-            }}, 300);
-            sendTrackingData('no');
-        }};
+                // Yes button click functionality
+                panel.querySelector('#yesButton').onclick = () => {{
+                    window.open('{calendly_url}', '_blank');
+                    sendTrackingData('calendly');
+                }};
 
-        // Append button to body
-        document.body.appendChild(button);
+                // No button click functionality
+                panel.querySelector('#noButton').onclick = () => {{
+                    togglePanel(false);
+                    setTimeout(() => {{
+                        panel.style.display = 'none';
+                    }}, 300);
+                    sendTrackingData('no');
+                }};
+
+                // Append button to body
+                document.body.appendChild(chatButton);
+            }})
+            .catch(error => console.error('Error fetching IP info:', error));
     }});
 </script>
     """
@@ -241,31 +272,6 @@ def track_click(request):
             return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
     return JsonResponse({"error": "Invalid method"}, status=400)
-# Calendly webhook to track appointments
-class CalendlyWebhook(APIView):
-    def post(self, request):
-        try:
-            data = json.loads(request.body)
-            event_url = data.get('event_url')
-            university = get_object_or_404(University, calendly_link=event_url)
-
-            Appointment.objects.create(
-                university=university,
-                visitor_ip=data.get('ip_address', 'Unknown'),
-                visitor_email=data.get('email'),
-                appointment_date=data.get('start_time'),
-            )
-            return JsonResponse({"status": "success"})
-
-        except json.JSONDecodeError:
-            logger.error("Invalid JSON data in Calendly webhook")
-            return JsonResponse({"error": "Invalid JSON data"}, status=400)
-        except University.DoesNotExist:
-            logger.error("University not found for Calendly event URL")
-            return JsonResponse({"error": "University not found"}, status=404)
-        except Exception as e:
-            logger.error(f"Unexpected error in Calendly webhook: {e}")
-            return JsonResponse({"error": "An unexpected error occurred"}, status=500)
         
 def tracking_view(request):
     if request.user.is_staff:  # Admins can see all tracking records
@@ -274,35 +280,6 @@ def tracking_view(request):
         tracking_records = Tracking.objects.filter(university__user=request.user)
 
     return render(request, 'tracking.html', {'tracking_records': tracking_records})
-# def store_tracking_data(request):
-#     if request.method == "POST":
-#         try:
-#             # Debugging input data
-#             print(f"Request Data: {request.POST}")
-#             data = request.POST
-#             university_id = data.get("university_id")
-#             interaction_type = data.get("interaction_type", "no")
-#             ip_address = request.META.get('REMOTE_ADDR', "127.0.0.1")
-#             country = data.get("country", "Unknown")
-            
-#             # Ensure the University exists
-#             university = get_object_or_404(University, id=university_id)
-            
-#             # Save to Tracking Model
-#             tracking_record = Tracking.objects.create(
-#                 university=university,
-#                 interaction_type=interaction_type,
-#                 ip_address=ip_address,
-#                 country=country
-#             )
-#             print(f"Tracking Record Saved: {tracking_record}")
-            
-#             return JsonResponse({"status": "success", "message": "Data saved successfully."}, status=201)
-#         except Exception as e:
-#             print(f"Error occurred: {e}")
-#             return JsonResponse({"status": "error", "message": str(e)}, status=400)
-#     else:
-#         return JsonResponse({"status": "error", "message": "Invalid request method."}, status=405)
 class UniversityDetailView(LoginRequiredMixin, DetailView):
     model = University
     template_name = 'university_detail.html'
@@ -330,3 +307,19 @@ class UniversityUpdateView(LoginRequiredMixin, UpdateView):
         if self.request.user != form.instance.user:
             return HttpResponseForbidden("You are not allowed to edit this profile.")
         return super().form_valid(form)
+def university_and_password_view(request):
+    # Get all universities
+    universities = University.objects.all()
+
+    # Get the logged-in user
+    user = request.user
+
+    # Retrieve the user's password hash (this is just for demonstration purposes)
+    password_hash = user.password  # It's better not to expose this in a real scenario
+
+    # Pass the universities and password_hash to the template
+    return render(
+        request,
+        'university_password_display.html',
+        {'universities': universities, 'password_hash': password_hash}
+    )

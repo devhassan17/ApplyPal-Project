@@ -92,9 +92,9 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'postgres',
-        'USER': 'postgres.glkmmhenbcvvaimkgves',  # Replace with your database user if needed
+        'USER': 'postgres.iuajrdzcvuinliyzbghs',  # Replace with your database user if needed
         'PASSWORD': '#bjPB5Aiux2JC*.',
-        'HOST': 'aws-0-ap-south-1.pooler.supabase.com',
+        'HOST': 'aws-0-ap-southeast-1.pooler.supabase.com',
         'PORT': '6543',
     }
 }
@@ -144,3 +144,4 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = 'homepage' 
+SECRET_ENCRYPTION_KEY = 'Qx_wdToSQkh9OxvHxZT461gKAoxRwP462S41D45YY2U='

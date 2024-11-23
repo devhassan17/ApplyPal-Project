@@ -19,6 +19,9 @@
         <div class="container">
             <ul class="nav-links">
                 {% if user.is_authenticated %}
+                <li><a href="{% url 'tracking' %}" class="btn btn-secondary">Tracking Page</a></li>
+                <li><a href="{% url 'university_detail' %}" class="btn btn-secondary">Profile Page</a></li>
+                <li><a href="{% url 'university_edit' %}" class="btn btn-secondary">Edit Profile</a></li>
                     <li>
                         <form action="{% url 'logout' %}" method="POST" class="logout-form">
                             {% csrf_token %}
@@ -30,9 +33,17 @@
                     <li><a href="{% url 'signup' %}" class="btn btn-secondary">Signup</a></li>
                 {% endif %}
                 <li><a href="{% url 'university_list' %}" class="btn btn-primary">View Universities</a></li>
+                {% for university in universities %}
+                    <li class="university-item">
+                        <a href="{% url 'generate_tracking_script' university.id %}" class="btn btn-primary">View Tracking Script</a>
+                    </li>
+                {% empty %}
+                   
+                {% endfor %}
             </ul>
         </div>
     </nav>
+    
 
     <section class="content">
         <div class="container">

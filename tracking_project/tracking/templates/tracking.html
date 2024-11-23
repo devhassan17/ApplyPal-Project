@@ -27,6 +27,7 @@
                 <tr>
                     <th>Time</th>
                     <th>University ID</th>
+                    <th>Institution Name</th>
                     <th>Interaction Type</th>
                     <th>IP Address</th>
                     <th>Country</th>
@@ -37,6 +38,7 @@
                     <tr>
                         <td>{{ record.time }}</td>
                         <td>{{ record.university.id }}</td>
+                        <td>{{ record.university.institution_name }}</td>  <!-- Access institution name here -->
                         <td>{{ record.interaction_type }}</td>
                         <td>{{ record.ip_address }}</td>
                         <td>{{ record.country }}</td>
@@ -48,6 +50,9 @@
                 {% endfor %}
             </tbody>
         </table>
+    </div>
+    <div>
+        <a href="{% url 'homepage' %}" class="btn btn-primary">Back to Homepage</a>
     </div>
 </div>
 {% endblock %}

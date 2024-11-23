@@ -21,7 +21,8 @@
             <ul class="university-list">
                 {% for university in universities %}
                     <li class="university-item">
-                        <span class="university-name">{{ university.first_name }}</span> - 
+                        <span class="university-name">{{ university.first_name }}</span>
+                        <span class="university-name">{{ university.institution_name }}</span> -
                         <a href="mailto:{{ university.email }}" class="university-email">{{ university.email }}</a>
                         <a href="{% url 'generate_tracking_script' university.id %}" class="btn btn-primary">View Tracking Script</a>
                     </li>

@@ -28,10 +28,10 @@ SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 SECRET_KEY = 'django-insecure-gb#hyoz2m3sgh(l94kk+_$f^fi@r3k17$)rkhlnd1uy0mr8e5k'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = [
-    'https://apply-pal-project.vercel.app/',
+    '.vercel.app',
     '127.0.0.1'
 ]
 

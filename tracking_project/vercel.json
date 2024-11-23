@@ -1,19 +1,13 @@
 {
-    "version": 2,
-    "builds": [
+  "builds": [{
+      "src": "tracking_project/wsgi.py",
+      "use": "@vercel/python",
+      "config": { "maxLambdaSize": "15mb", "runtime": "python3.9" }
+  }],
+  "routes": [
       {
-        "src": "manage.py",
-        "use": "@vercel/python",
-        "config": {
-          "maxDuration": 60
-        }
+          "src": "/(.*)",
+          "dest": "tracking_project/wsgi.py"
       }
-    ],
-    "routes": [
-      {
-        "src": "/(.*)",
-        "dest": "manage.py"
-      }
-    ]
-  }
-  
+  ]
+}

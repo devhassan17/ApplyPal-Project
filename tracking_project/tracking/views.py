@@ -45,7 +45,7 @@ def university_list(request):
         return HttpResponseForbidden("You do not have permission to view this page.")
 
     universities = University.objects.all()
-    return render(request, 'universities.html', {'universities': universities})
+    return render(request, 'university_list.html', {'universities': universities})
 
 # Signup View
 def signup(request):
@@ -89,29 +89,32 @@ def generate_tracking_script(request, university_id):
 
     # Insert the script into a template-friendly string format
     script_code = f"""
-<script>
+    <script src="https://www.google.com/recaptcha/enterprise.js?render=6LfKxIcqAAAAAL8e5CJP0PiZeD5rwuDwalyYnnl4"></script>
+        <style>
+        .grecaptcha-badge {{
+            visibility: hidden;
+            opacity: 0;
+        }}
+    </style>
+        <script>
+            function onClick() {{
+                grecaptcha.enterprise.ready(async () => {{
+                const token = await grecaptcha.enterprise.execute('6LfKxIcqAAAAAL8e5CJP0PiZeD5rwuDwalyYnnl4', {{action: 'LOGIN'}});
+            }});
+        }}
+    </script>
+    <script>
+
     document.addEventListener('DOMContentLoaded', function () {{
-        // Fetch IP info from ipinfo.io
         fetch('https://ipinfo.io/json?token=4b143e6e51301d')
             .then(response => response.json())
             .then(data => {{
-                console.log('IP Info:', data);
-    
                 const ip = data.ip;
-                const country = data.country;
-
-                // Tracking variables
-                const universityId = '{university_id}';
+                const country = data.country;                
                 const trackClickUrl = '{track_click_url}';
-
-                // Utility function to log messages to the console
                 const logToConsole = (message) => console.log(message);
-
-                // Function to send tracking data
                 const sendTrackingData = (type) => {{
-                    const trackingData = {{ type, universityId, ip, country }}; // Include IP and country
-                    logToConsole(`Sending tracking data: ${{JSON.stringify(trackingData)}}`);
-
+                    const trackingData = {{ type, hash:"{university_id}", ip, country }}; 
                     fetch(trackClickUrl, {{
                         method: 'POST',
                         headers: {{ 'Content-Type': 'application/json' }},
@@ -121,8 +124,6 @@ def generate_tracking_script(request, university_id):
                         .then(result => logToConsole(`Response: ${{JSON.stringify(result)}}`))
                         .catch(error => logToConsole(`Error sending tracking data: ${{error}}`));
                 }};
-
-                // Create the "Chat to our Students" button
                 const chatButton = document.createElement('button');
                 chatButton.innerText = 'Chat to our Students';
                 chatButton.style.cssText = `
@@ -139,9 +140,6 @@ def generate_tracking_script(request, university_id):
                     cursor: pointer;
                     z-index: 1000;
                 `;
-
-
-                // Create the sliding panel
                 const panel = document.createElement('div');
                 panel.style.cssText = `
                     position: fixed;
@@ -166,29 +164,20 @@ def generate_tracking_script(request, university_id):
                     <a href="https://www.applypal.io/" target="_blank" style="text-decoration: none; color: #131e42;">Powered by TAG</a>
                 </div>
                 `;
-
-                // Append panel to body
                 document.body.appendChild(panel);
-
-                // Function to toggle the panel
                 const togglePanel = (show) => {{
                     panel.style.right = show ? '0' : '-310px';
                 }};
-
-                // Button click to show the panel
                 chatButton.onclick = () => {{
+                    onClick()
                     panel.style.display = 'block';
                     togglePanel(true);
                     sendTrackingData('chat');
                 }};
-
-                // Yes button click functionality
                 panel.querySelector('#yesButton').onclick = () => {{
                     window.open('{calendly_url}', '_blank');
                     sendTrackingData('calendly');
                 }};
-
-                // No button click functionality
                 panel.querySelector('#noButton').onclick = () => {{
                     togglePanel(false);
                     setTimeout(() => {{
@@ -196,8 +185,6 @@ def generate_tracking_script(request, university_id):
                     }}, 300);
                     sendTrackingData('no');
                 }};
-
-                // Append button to body
                 document.body.appendChild(chatButton);
             }})
             .catch(error => console.error('Error fetching IP info:', error));
@@ -226,7 +213,7 @@ def track_click(request):
         try:
             # Parse incoming data
             data = json.loads(request.body)
-            university_id = data.get('universityId')
+            university_id = data.get('hash')
             interaction_type = data.get('type', 'no')
 
             # Get IP and Country

@@ -30,7 +30,7 @@ SECRET_KEY = 'django-insecure-gb#hyoz2m3sgh(l94kk+_$f^fi@r3k17$)rkhlnd1uy0mr8e5k
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', '.vercel.app', '13.41.108.71']
+ALLOWED_HOSTS = ['127.0.0.1', '.vercel.app', '13.41.108.71', 'signup.applypal.io']
 
 
 CORS_ALLOWED_ORIGINS = [

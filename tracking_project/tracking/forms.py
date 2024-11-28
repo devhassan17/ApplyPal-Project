@@ -8,7 +8,7 @@ class UniversitySignUpForm(UserCreationForm):
     institution_name = forms.CharField(required=True)
     first_name = forms.CharField(required=True)
     last_name = forms.CharField(required=True)
-    calendly_link = forms.URLField(required=True, label="Calendly Link")
+    calendly_link = forms.URLField(required=False, label="Calendly Link")
     address = forms.CharField(widget=forms.Textarea, required=True)
 
     class Meta:

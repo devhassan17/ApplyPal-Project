@@ -82,7 +82,7 @@ def generate_tracking_script(request, university_id):
     university = get_object_or_404(University, id=university_id)
     
     # Get the absolute URL for the tracking endpoint
-    track_click_url = request.build_absolute_uri('/track-click/')
+    track_click_url = request.build_absolute_uri('https://signup.applypal.io/track-click/')
     
     # Get the Calendly URL (can be dynamic if needed)
     calendly_url = university.calendly_link or "https://calendly.com/example"
